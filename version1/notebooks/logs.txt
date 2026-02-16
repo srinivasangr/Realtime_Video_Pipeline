@@ -1,0 +1,27 @@
+✅ Loaded on 2 GPU(s) in 12.9s
+  Video: 8.4s, 30fps, every 1.0s
+  Extracted 9 frames
+  Streaming with 2 GPU worker(s)...
+❌ Error GPU 1: Incorrect image source. Must be a valid URL starting with `http://` or `https://`, a valid path to an image file, or a base64 encoded string. Got file:///tmp/tmpb6hhs9vd.jpg. Failed with Invalid base64-encoded string: number of data characters (25) cannot be 1 more than a multiple of 4
+  Frame 2/9 @ 00:00 (GPU1) → Error: Incorrect image source. Must be a... (0.0s)
+❌ Error GPU 0: Incorrect image source. Must be a valid URL starting with `http://` or `https://`, a valid path to an image file, or a base64 encoded string. Got file:///tmp/tmpec6vr__7.jpg. Failed with Incorrect padding
+  Frame 1/9 @ 00:00 (GPU0) → Error: Incorrect image source. Must be a... (0.0s)
+❌ Error GPU 0: Incorrect image source. Must be a valid URL starting with `http://` or `https://`, a valid path to an image file, or a base64 encoded string. Got file:///tmp/tmpwzd3xp5q.jpg. Failed with Invalid base64-encoded string: number of data characters (25) cannot be 1 more than a multiple of 4
+  Frame 3/9 @ 00:01 (GPU0) → Error: Incorrect image source. Must be a... (0.0s)
+❌ Error GPU 1: Incorrect image source. Must be a valid URL starting with `http://` or `https://`, a valid path to an image file, or a base64 encoded string. Got file:///tmp/tmpnihnjotj.jpg. Failed with Invalid base64-encoded string: number of data characters (25) cannot be 1 more than a multiple of 4
+  Frame 4/9 @ 00:02 (GPU1) → Error: Incorrect image source. Must be a... (0.0s)
+❌ Error GPU 0: Incorrect image source. Must be a valid URL starting with `http://` or `https://`, a valid path to an image file, or a base64 encoded string. Got file:///tmp/tmpok7j4f0a.jpg. Failed with Invalid base64-encoded string: number of data characters (25) cannot be 1 more than a multiple of 4
+  Frame 5/9 @ 00:03 (GPU0) → Error: Incorrect image source. Must be a... (0.0s)
+❌ Error GPU 1: Incorrect image source. Must be a valid URL starting with `http://` or `https://`, a valid path to an image file, or a base64 encoded string. Got file:///tmp/tmp3hjjrgin.jpg. Failed with Invalid base64-encoded string: number of data characters (25) cannot be 1 more than a multiple of 4
+  Frame 6/9 @ 00:04 (GPU1) → Error: Incorrect image source. Must be a... (0.0s)
+❌ Error GPU 0: Incorrect image source. Must be a valid URL starting with `http://` or `https://`, a valid path to an image file, or a base64 encoded string. Got file:///tmp/tmpolmvykdy.jpg. Failed with Invalid base64-encoded string: number of data characters (25) cannot be 1 more than a multiple of 4
+  Frame 7/9 @ 00:05 (GPU0) → Error: Incorrect image source. Must be a... (0.0s)
+❌ Error GPU 1: Incorrect image source. Must be a valid URL starting with `http://` or `https://`, a valid path to an image file, or a base64 encoded string. Got file:///tmp/tmp8bj8cqi3.jpg. Failed with Invalid base64-encoded string: number of data characters (25) cannot be 1 more than a multiple of 4
+  Frame 8/9 @ 00:06 (GPU1) → Error: Incorrect image source. Must be a... (0.0s)
+❌ Error GPU 0: Incorrect image source. Must be a valid URL starting with `http://` or `https://`, a valid path to an image file, or a base64 encoded string. Got file:///tmp/tmp67n2yucr.jpg. Failed with Invalid base64-encoded string: number of data characters (25) cannot be 1 more than a multiple of 4
+  Frame 9/9 @ 00:07 (GPU0) → Error: Incorrect image source. Must be a... (0.0s)
+INFO:     2601:600:9003:1cd0:f3c4:60e7:3177:fe23:0 - "GET /api/history HTTP/1.1" 200 OK
+INFO:     2601:600:9003:1cd0:f3c4:60e7:3177:fe23:0 - "POST /api/analyze-stream HTTP/1.1" 200 OK
+⏳ Loading SmolVLM (~4GB) on both GPUs...
+  🗑️ Previous models unloaded
+  Loading on cuda:0...

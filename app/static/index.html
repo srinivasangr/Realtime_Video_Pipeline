@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Understanding Pipeline</title>
+    <meta name="description" content="AI-powered video analysis using Moondream2 vision-language model">
+    <link rel="stylesheet" href="/static/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- ─── Background Glow ─────────────────────────────────────────── -->
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
+    <!-- ─── Header ──────────────────────────────────────────────────── -->
+    <header class="header">
+        <div class="logo">
+            <span class="logo-icon">🎥</span>
+            <h1>Video<span class="accent">AI</span></h1>
+        </div>
+        <div class="header-badge">
+            <span class="badge-dot" id="statusDot"></span>
+            <span id="statusText">Initializing...</span>
+        </div>
+    </header>
+
+    <!-- ─── Main Container ──────────────────────────────────────────── -->
+    <main class="container">
+
+        <!-- ── Input Panel ──────────────────────────────────────────── -->
+        <section class="panel input-panel">
+            <h2 class="panel-title">📤 Input</h2>
+
+            <!-- Source Toggle -->
+            <div class="source-toggle" id="sourceToggle">
+                <button class="toggle-btn active" data-source="upload" id="btnUpload">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
+                    Upload Video
+                </button>
+                <button class="toggle-btn" data-source="webcam" id="btnWebcam">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M23 7l-7 5 7 5V7z" />
+                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                    </svg>
+                    Webcam
+                </button>
+            </div>
+
+            <!-- Upload Area -->
+            <div class="upload-zone" id="uploadZone">
+                <div class="upload-content" id="uploadContent">
+                    <div class="upload-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                            <polyline points="17 8 12 3 7 8" />
+                            <line x1="12" y1="3" x2="12" y2="15" />
+                        </svg>
+                    </div>
+                    <p class="upload-text">Drag & drop video here</p>
+                    <p class="upload-subtext">or click to browse</p>
+                    <p class="upload-limit">Max 20MB • MP4, WebM, AVI, MOV</p>
+                </div>
+                <div class="file-selected hidden" id="fileSelected">
+                    <div class="file-icon">🎬</div>
+                    <div class="file-info">
+                        <p class="file-name" id="fileName"></p>
+                        <p class="file-size" id="fileSize"></p>
+                    </div>
+                    <button class="file-remove" id="fileRemove" title="Remove file">✕</button>
+                </div>
+                <input type="file" id="fileInput" accept=".mp4,.webm,.avi,.mov,.mkv" hidden>
+            </div>
+
+            <!-- Webcam Area -->
+            <div class="webcam-zone hidden" id="webcamZone">
+                <video id="webcamPreview" autoplay muted playsinline></video>
+                <div class="webcam-controls">
+                    <button class="btn btn-record" id="btnRecord">
+                        <span class="record-dot"></span>
+                        Record
+                    </button>
+                    <span class="webcam-timer hidden" id="webcamTimer">00:00 / 00:30</span>
+                </div>
+                <div class="webcam-recording hidden" id="webcamRecording">
+                    <div class="recording-pulse"></div>
+                    <span>Recording...</span>
+                    <button class="btn btn-stop" id="btnStop">■ Stop</button>
+                </div>
+            </div>
+
+            <!-- Prompt -->
+            <div class="prompt-container">
+                <label for="promptInput" class="input-label">💬 Prompt</label>
+                <textarea id="promptInput" class="prompt-input"
+                    placeholder="What should the AI analyze? e.g. 'Describe what's happening in each frame' or 'Read any visible text'"
+                    rows="3"></textarea>
+            </div>
+
+            <!-- Submit -->
+            <button class="btn btn-primary" id="btnAnalyze" disabled>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                </svg>
+                Analyze Video
+            </button>
+
+            <!-- Error Message -->
+            <div class="error-message hidden" id="errorMessage"></div>
+        </section>
+
+        <!-- ── Results Panel ────────────────────────────────────────── -->
+        <section class="panel results-panel">
+            <h2 class="panel-title">🧠 Analysis Results</h2>
+
+            <!-- Empty State -->
+            <div class="empty-state" id="emptyState">
+                <div class="empty-icon">🔍</div>
+                <p>Upload a video and enter a prompt to get started</p>
+            </div>
+
+            <!-- Loading State -->
+            <div class="loading-state hidden" id="loadingState">
+                <div class="loader">
+                    <div class="loader-ring"></div>
+                    <div class="loader-ring"></div>
+                    <div class="loader-ring"></div>
+                </div>
+                <p class="loading-text">Analyzing video frames...</p>
+                <p class="loading-subtext" id="loadingSubtext">This may take a moment on CPU</p>
+            </div>
+
+            <!-- Results -->
+            <div class="results-content hidden" id="resultsContent">
+                <div class="results-meta" id="resultsMeta"></div>
+                <div class="results-list" id="resultsList"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ─── History Section ─────────────────────────────────────────── -->
+    <section class="history-section" id="historySection">
+        <div class="history-header">
+            <h2 class="panel-title">📜 Analysis History</h2>
+            <button class="btn-refresh" id="btnRefreshHistory" title="Refresh">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M23 4v6h-6" />
+                    <path d="M1 20v-6h6" />
+                    <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
+                </svg>
+            </button>
+        </div>
+        <div class="history-list" id="historyList">
+            <div class="empty-state" id="historyEmpty">
+                <div class="empty-icon">📂</div>
+                <p>No saved analyses yet</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── Footer ──────────────────────────────────────────────────── -->
+    <footer class="footer">
+        <p>Powered by <strong>Moondream2</strong> Vision-Language Model • Built with FastAPI</p>
+    </footer>
+
+    <script>
+        // ════════════════════════════════════════════════════════════════
+        // Video Understanding Pipeline — Frontend Logic
+        // ════════════════════════════════════════════════════════════════
+
+        const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+        const MAX_WEBCAM_SEC = 30;
+
+        // ─── DOM Elements ──────────────────────────────────────────────
+        const $ = (sel) => document.querySelector(sel);
+        const statusDot = $("#statusDot");
+        const statusText = $("#statusText");
+
+        const btnUpload = $("#btnUpload");
+        const btnWebcam = $("#btnWebcam");
+        const uploadZone = $("#uploadZone");
+        const webcamZone = $("#webcamZone");
+        const uploadContent = $("#uploadContent");
+        const fileSelected = $("#fileSelected");
+        const fileName = $("#fileName");
+        const fileSize = $("#fileSize");
+        const fileRemove = $("#fileRemove");
+        const fileInput = $("#fileInput");
+
+        const webcamPreview = $("#webcamPreview");
+        const btnRecord = $("#btnRecord");
+        const btnStop = $("#btnStop");
+        const webcamTimer = $("#webcamTimer");
+        const webcamRecording = $("#webcamRecording");
+
+        const promptInput = $("#promptInput");
+        const btnAnalyze = $("#btnAnalyze");
+        const errorMessage = $("#errorMessage");
+
+        const emptyState = $("#emptyState");
+        const loadingState = $("#loadingState");
+        const loadingSubtext = $("#loadingSubtext");
+        const resultsContent = $("#resultsContent");
+        const resultsMeta = $("#resultsMeta");
+        const resultsList = $("#resultsList");
+
+        // ─── State ─────────────────────────────────────────────────────
+        let currentFile = null;
+        let currentSource = "upload";
+        let mediaStream = null;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let recordingTimer = null;
+        let recordingSeconds = 0;
+
+        // ─── Health Check ──────────────────────────────────────────────
+        async function checkHealth() {
+            try {
+                const res = await fetch("/api/health");
+                const data = await res.json();
+                if (data.model_loaded) {
+                    statusDot.className = "badge-dot online";
+                    statusText.textContent = `Ready • ${data.device.toUpperCase()}`;
+                } else {
+                    statusDot.className = "badge-dot loading";
+                    statusText.textContent = "Loading model...";
+                    setTimeout(checkHealth, 3000);
+                }
+            } catch {
+                statusDot.className = "badge-dot offline";
+                statusText.textContent = "Server offline";
+                setTimeout(checkHealth, 5000);
+            }
+        }
+        checkHealth();
+
+        // ─── Source Toggle ─────────────────────────────────────────────
+        btnUpload.addEventListener("click", () => switchSource("upload"));
+        btnWebcam.addEventListener("click", () => switchSource("webcam"));
+
+        function switchSource(source) {
+            currentSource = source;
+            currentFile = null;
+
+            btnUpload.classList.toggle("active", source === "upload");
+            btnWebcam.classList.toggle("active", source === "webcam");
+            uploadZone.classList.toggle("hidden", source !== "upload");
+            webcamZone.classList.toggle("hidden", source !== "webcam");
+
+            // Reset upload UI
+            uploadContent.classList.remove("hidden");
+            fileSelected.classList.add("hidden");
+            fileInput.value = "";
+
+            // Start/stop webcam
+            if (source === "webcam") {
+                startWebcam();
+            } else {
+                stopWebcam();
+            }
+            updateAnalyzeButton();
+        }
+
+        // ─── File Upload ───────────────────────────────────────────────
+        uploadZone.addEventListener("click", (e) => {
+            if (e.target.closest("#fileRemove")) return;
+            fileInput.click();
+        });
+
+        uploadZone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            uploadZone.classList.add("dragover");
+        });
+
+        uploadZone.addEventListener("dragleave", () => {
+            uploadZone.classList.remove("dragover");
+        });
+
+        uploadZone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove("dragover");
+            const file = e.dataTransfer.files[0];
+            if (file) handleFile(file);
+        });
+
+        fileInput.addEventListener("change", () => {
+            if (fileInput.files[0]) handleFile(fileInput.files[0]);
+        });
+
+        fileRemove.addEventListener("click", (e) => {
+            e.stopPropagation();
+            currentFile = null;
+            fileInput.value = "";
+            uploadContent.classList.remove("hidden");
+            fileSelected.classList.add("hidden");
+            hideError();
+            updateAnalyzeButton();
+        });
+
+        function handleFile(file) {
+            hideError();
+
+            // Check file size
+            if (file.size > MAX_FILE_SIZE) {
+                showError(`File is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum is ${MAX_FILE_SIZE / 1024 / 1024}MB.`);
+                return;
+            }
+
+            // Check extension
+            const ext = file.name.split(".").pop().toLowerCase();
+            const allowed = ["mp4", "webm", "avi", "mov", "mkv"];
+            if (!allowed.includes(ext)) {
+                showError(`Unsupported format .${ext}. Allowed: ${allowed.join(", ")}`);
+                return;
+            }
+
+            currentFile = file;
+            fileName.textContent = file.name;
+            fileSize.textContent = formatBytes(file.size);
+            uploadContent.classList.add("hidden");
+            fileSelected.classList.remove("hidden");
+            updateAnalyzeButton();
+        }
+
+        // ─── Webcam ────────────────────────────────────────────────────
+        async function startWebcam() {
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
+                    audio: false,
+                });
+                webcamPreview.srcObject = mediaStream;
+            } catch (err) {
+                showError("Cannot access webcam. Please allow camera access.");
+            }
+        }
+
+        function stopWebcam() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(t => t.stop());
+                mediaStream = null;
+            }
+            webcamPreview.srcObject = null;
+            stopRecording();
+        }
+
+        btnRecord.addEventListener("click", startRecording);
+        btnStop.addEventListener("click", stopRecording);
+
+        function startRecording() {
+            if (!mediaStream) return;
+            recordedChunks = [];
+            recordingSeconds = 0;
+
+            mediaRecorder = new MediaRecorder(mediaStream, { mimeType: "video/webm" });
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) recordedChunks.push(e.data);
+            };
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(recordedChunks, { type: "video/webm" });
+                currentFile = new File([blob], "webcam_recording.webm", { type: "video/webm" });
+
+                if (currentFile.size > MAX_FILE_SIZE) {
+                    showError("Recording is too large. Try a shorter recording.");
+                    currentFile = null;
+                }
+                updateAnalyzeButton();
+            };
+
+            mediaRecorder.start(1000);
+
+            // UI
+            btnRecord.classList.add("hidden");
+            webcamRecording.classList.remove("hidden");
+            webcamTimer.classList.remove("hidden");
+            updateTimer();
+
+            // Auto-stop at max duration
+            recordingTimer = setInterval(() => {
+                recordingSeconds++;
+                updateTimer();
+                if (recordingSeconds >= MAX_WEBCAM_SEC) {
+                    stopRecording();
+                }
+            }, 1000);
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                mediaRecorder.stop();
+            }
+            clearInterval(recordingTimer);
+            btnRecord.classList.remove("hidden");
+            webcamRecording.classList.add("hidden");
+            webcamTimer.classList.add("hidden");
+        }
+
+        function updateTimer() {
+            const mm = String(Math.floor(recordingSeconds / 60)).padStart(2, "0");
+            const ss = String(recordingSeconds % 60).padStart(2, "0");
+            webcamTimer.textContent = `${mm}:${ss} / 00:${MAX_WEBCAM_SEC}`;
+        }
+
+        // ─── Analyze ───────────────────────────────────────────────────
+        function updateAnalyzeButton() {
+            btnAnalyze.disabled = !(currentFile && promptInput.value.trim());
+        }
+
+        promptInput.addEventListener("input", updateAnalyzeButton);
+
+        btnAnalyze.addEventListener("click", async () => {
+            if (!currentFile || !promptInput.value.trim()) return;
+            hideError();
+
+            // Show loading
+            emptyState.classList.add("hidden");
+            resultsContent.classList.add("hidden");
+            loadingState.classList.remove("hidden");
+            btnAnalyze.disabled = true;
+
+            const formData = new FormData();
+            formData.append("video", currentFile);
+            formData.append("prompt", promptInput.value.trim());
+
+            try {
+                const res = await fetch("/api/analyze", { method: "POST", body: formData });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.detail || "Analysis failed");
+                }
+
+                displayResults(data);
+            } catch (err) {
+                showError(err.message || "Something went wrong. Check the server.");
+                emptyState.classList.remove("hidden");
+            } finally {
+                loadingState.classList.add("hidden");
+                btnAnalyze.disabled = false;
+                updateAnalyzeButton();
+                loadHistory(); // Refresh history after analysis
+            }
+        });
+
+        // ─── Results Display ───────────────────────────────────────────
+        function displayResults(data) {
+            resultsContent.classList.remove("hidden");
+
+            resultsMeta.innerHTML = `
+        <div class="meta-grid">
+            <div class="meta-item">
+                <span class="meta-label">Duration</span>
+                <span class="meta-value">${data.video_duration_seconds}s</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Frames</span>
+                <span class="meta-value">${data.frames_analyzed}</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Time</span>
+                <span class="meta-value">${data.processing_time_seconds}s</span>
+            </div>
+        </div>
+        <div class="meta-prompt">
+            <span class="meta-label">Prompt</span>
+            <span>${escapeHTML(data.prompt)}</span>
+        </div>
+    `;
+
+            resultsList.innerHTML = data.results
+                .map((r, i) => `
+            <div class="result-card" style="animation-delay: ${i * 0.06}s">
+                <div class="result-timestamp">${r.timestamp}</div>
+                <div class="result-description">${escapeHTML(r.description)}</div>
+            </div>
+        `)
+                .join("");
+        }
+
+        // ─── Helpers ───────────────────────────────────────────────────
+        function formatBytes(bytes) {
+            if (bytes < 1024) return bytes + " B";
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+            return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+        }
+
+        function escapeHTML(str) {
+            const div = document.createElement("div");
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            errorMessage.classList.remove("hidden");
+        }
+
+        function hideError() {
+            errorMessage.classList.add("hidden");
+        }
+
+        // ─── History ───────────────────────────────────────────────────
+        const historyList = document.getElementById("historyList");
+        const historyEmpty = document.getElementById("historyEmpty");
+        const btnRefreshHistory = document.getElementById("btnRefreshHistory");
+
+        btnRefreshHistory.addEventListener("click", loadHistory);
+
+        async function loadHistory() {
+            try {
+                const res = await fetch("/api/history");
+                const data = await res.json();
+                const analyses = data.analyses || [];
+
+                if (analyses.length === 0) {
+                    historyList.innerHTML = '';
+                    historyList.appendChild(historyEmpty.cloneNode(true));
+                    return;
+                }
+
+                historyList.innerHTML = analyses.map(a => `
+            <div class="history-card" onclick="viewHistory('${a.id}')">
+                <div class="history-card-top">
+                    <span class="history-filename">🎬 ${escapeHTML(a.video_filename)}</span>
+                    <button class="history-delete" onclick="event.stopPropagation(); deleteHistory('${a.id}')" title="Delete">🗑️</button>
+                </div>
+                <div class="history-prompt">${escapeHTML(a.prompt)}</div>
+                <div class="history-meta">
+                    <span>${a.frames_analyzed} frames</span>
+                    <span>${a.processing_time_seconds}s</span>
+                    <span>${a.device.toUpperCase()}</span>
+                    <span>${formatDate(a.created_at)}</span>
+                </div>
+            </div>
+        `).join('');
+            } catch (e) {
+                console.error("Failed to load history:", e);
+            }
+        }
+
+        async function viewHistory(id) {
+            try {
+                const res = await fetch(`/api/history/${id}`);
+                const data = await res.json();
+                // Display in the results panel
+                displayResults(data);
+                // Scroll to results
+                resultsContent.scrollIntoView({ behavior: 'smooth' });
+            } catch (e) {
+                showError("Failed to load analysis.");
+            }
+        }
+
+        async function deleteHistory(id) {
+            if (!confirm('Delete this analysis?')) return;
+            try {
+                await fetch(`/api/history/${id}`, { method: 'DELETE' });
+                loadHistory();
+            } catch (e) {
+                showError("Failed to delete.");
+            }
+        }
+
+        function formatDate(isoStr) {
+            if (!isoStr) return '';
+            const d = new Date(isoStr);
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                + ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Load history on page load
+        loadHistory();
+    </script>
+
+</body>
+
+</html>
